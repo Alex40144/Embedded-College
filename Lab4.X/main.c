@@ -108,15 +108,17 @@ void displayDigit(int digit);
 void Digits(int val);
 void Bar(int val);
 void Top(int val);
-int state = 0;
+int state = 1;
 
-__interrupt() void isr (void){
-    if (PIR0 == 0x01){
-        state += state;
+__interrupt(high_priority) void isr (void){
+    
+    if (PIR0 & 0x01){
+        
+        state += 1;
         if (state > 2){
             state = 0;
         }
-        PIR0 = 0;
+        PIR0 &= ~0x01;
         INTCON |= 0b11000000;
     }
 }
@@ -135,64 +137,54 @@ void main(void){
     ADCON0 |= 0x01;
     
     
-//    PIE0 = 0b00000001; // enable int 0 interrupt
-//    INTCON = 0b01000000;
-//    INTCON |= 0b11000000;
+    PIE0 = 0b00000001; // enable int 0 interrupt
+    INTCON = 0b01000000;
+    INTCON |= 0b11000000;
         
     uint16_t result = 0;
     while(1){
         //__delay_ms(50);
-//        result = (ADRESH << 8);
-//        result |= ADRESL;
-        
-//        switch (state){
-//            case 0:
-//                //Digits(result);
-//                break;
-//            case 1:
-//                //Top(result);
-//                break;
-//            case 2:
-//                //Bar(result);
-//                break;
-//        }
-        if (PORTB & 0x01 == 0) {
-            LATC = 0xff;
-        } else {
-            LATC = 0x00;
+        result = (ADRESH << 8);
+        result |= ADRESL;
+        if (state == 0){
+            Top(result);
+        } else if (state == 1){
+            Digits(result);
+        } else if (state == 2){
+            Bar(result);
         }
-//        result = 0;
+        result = 0;
     }
 }
 
 void Top(int val){
-            if (val > 1000){
-            LATC = 0x80;
-        }
-        else if (val > 900){
-            LATC = 0x40;
-        }
-        else if (val > 800){
-            LATC = 0x20;
-        }
-        else if (val > 700){
-            LATC = 0x10;
-        }
-        else if (val > 600){
-            LATC = 0x08;
-        }
-        else if (val > 500){
-            LATC = 0x04;
-        }
-        else if (val > 400){
-            LATC = 0x02;
-        }
-        else if (val > 300){
-            LATC = 0x01;
-        }
-        else{
-            LATC = 0x01;
-        }
+    if (val > 1000){
+        LATC = 0x80;
+    }
+    else if (val > 900){
+        LATC = 0x40;
+    }
+    else if (val > 800){
+        LATC = 0x20;
+    }
+    else if (val > 700){
+        LATC = 0x10;
+    }
+    else if (val > 600){
+        LATC = 0x08;
+    }
+    else if (val > 500){
+        LATC = 0x04;
+    }
+    else if (val > 400){
+        LATC = 0x02;
+    }
+    else if (val > 300){
+        LATC = 0x01;
+    }
+    else{
+        LATC = 0x01;
+    }
 }
 
 void Bar(int val){
