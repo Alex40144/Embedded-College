@@ -224,13 +224,14 @@ void Digits(int val){
         
     for (int i = 0; i < 10; i++){
         displayDigit(tens);
-        LATB = 0b01000000;
-        __delay_ms(1);
-        LATB = 0b110000;
-        displayDigit(units);
         LATB = 0b10000000;
         __delay_ms(1);
         LATB = 0b11000000;
+        displayDigit(units);
+        LATB = 0b01000000;
+        __delay_ms(1);
+        LATB = 0b11000000;
+        __delay_ms(1);
     }
 }
 
@@ -243,13 +244,13 @@ void displayDigit(int digit){
             LATD = 0b01100000;
             break;
         case 2:
-            LATD = 0b1101010;
+            LATD = 0b11011010;
             break;
         case 3:
             LATD = 0b11110010;
             break;
         case 4:
-            LATD = 0b0110110;
+            LATD = 0b01100110;
             break;
         case 5:
             LATD = 0b10110110;
