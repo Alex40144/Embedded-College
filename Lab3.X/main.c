@@ -1,3 +1,4 @@
+
 // PIC18F45K40 Configuration Bit Settings
 
 
@@ -102,10 +103,14 @@
 #include <stdint.h>
 #define _XTAL_FREQ 6000000
 
+void displayDigit(int digit);
+
 void main(void){
+    TRISB = 0;
     TRISC = 0;
     TRISD = 0;
     LATD = 0;
+    LATB = 0b00000011;
     TRISA = 0b00000001;
     ANSELA = 0b00000001;
     ADCON0 |= 0x40;
@@ -118,33 +123,55 @@ void main(void){
         result |= (ADRESH << 8);
         result |= ADRESL;
         
-        if (result > 1000){
-            LATC = 0x80;
+        int max100 = result / 10;
+        int tens = max100 / 10;
+        int units = max100 % 10;
+        for (int i = 0; i < 100; i++){
+            displayDigit(tens);
+            LATB = 0b00000001;
+            __delay_ms(1);
+            LATB = 0b00000011;
+            displayDigit(units);
+            LATB = 0b00000010;
+            __delay_ms(1);
+            LATB = 0b00000011;
         }
-        else if (result > 900){
-            LATC = 0x40;
-        }
-        else if (result > 800){
-            LATC = 0x20;
-        }
-        else if (result > 700){
-            LATC = 0x10;
-        }
-        else if (result > 600){
-            LATC = 0x08;
-        }
-        else if (result > 500){
-            LATC = 0x04;
-        }
-        else if (result > 400){
-            LATC = 0x02;
-        }
-        else if (result > 300){
-            LATC = 0x01;
-        }
-        else{
-            LATC = 0x01;
-        }
+        
         result = 0;
+    }
+}
+
+void displayDigit(int digit){
+    switch(digit){
+        case 0:
+            LATC = 0b11111100;
+            break;
+        case 1:
+            LATC = 0b01100000;
+            break;
+        case 2:
+            LATC = 0b1101010;
+            break;
+        case 3:
+            LATC = 0b11110010;
+            break;
+        case 4:
+            LATC = 0b0110110;
+            break;
+        case 5:
+            LATC = 0b10110110;
+            break;
+        case 6:
+            LATC = 0b10111110;
+            break;
+        case 7:
+            LATC = 0b11100000;
+            break;
+        case 8:
+            LATC = 0b11111110;
+            break;
+        case 9:
+            LATC = 0b11110110;
+            break;
     }
 }

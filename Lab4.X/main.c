@@ -1,3 +1,5 @@
+
+
 // PIC18F45K40 Configuration Bit Settings
 
 
@@ -102,49 +104,175 @@
 #include <stdint.h>
 #define _XTAL_FREQ 6000000
 
+void displayDigit(int digit);
+void Digits(int val);
+void Bar(int val);
+void Top(int val);
+int state = 0;
+
+__interrupt() void isr (void){
+    if (PIR0 == 0x01){
+        state += state;
+        if (state > 2){
+            state = 0;
+        }
+        PIR0 = 0;
+        INTCON |= 0b11000000;
+    }
+}
+
 void main(void){
+    TRISB = 0b00001111;
+    ANSELB = 0;
     TRISC = 0;
-    TRISD = 0;
-    LATD = 0;
     TRISA = 0b00000001;
+    TRISD = 0x00;
     ANSELA = 0b00000001;
+    LATD = 0x00;
     ADCON0 |= 0x40;
     ADCON0 |= 0x04;
     ADCON0 |= 0x80;
     ADCON0 |= 0x01;
+    
+    
+//    PIE0 = 0b00000001; // enable int 0 interrupt
+//    INTCON = 0b01000000;
+//    INTCON |= 0b11000000;
+        
     uint16_t result = 0;
     while(1){
         //__delay_ms(50);
-        result |= (ADRESH << 8);
-        result |= ADRESL;
+//        result = (ADRESH << 8);
+//        result |= ADRESL;
         
-        if (result > 1000){
+//        switch (state){
+//            case 0:
+//                //Digits(result);
+//                break;
+//            case 1:
+//                //Top(result);
+//                break;
+//            case 2:
+//                //Bar(result);
+//                break;
+//        }
+        if (PORTB & 0x01 == 0) {
+            LATC = 0xff;
+        } else {
+            LATC = 0x00;
+        }
+//        result = 0;
+    }
+}
+
+void Top(int val){
+            if (val > 1000){
             LATC = 0x80;
         }
-        else if (result > 900){
+        else if (val > 900){
             LATC = 0x40;
         }
-        else if (result > 800){
+        else if (val > 800){
             LATC = 0x20;
         }
-        else if (result > 700){
+        else if (val > 700){
             LATC = 0x10;
         }
-        else if (result > 600){
+        else if (val > 600){
             LATC = 0x08;
         }
-        else if (result > 500){
+        else if (val > 500){
             LATC = 0x04;
         }
-        else if (result > 400){
+        else if (val > 400){
             LATC = 0x02;
         }
-        else if (result > 300){
+        else if (val > 300){
             LATC = 0x01;
         }
         else{
             LATC = 0x01;
         }
-        result = 0;
+}
+
+void Bar(int val){
+    if (val > 1000){
+        LATC = 0xff;
+    }
+    else if (val > 900){
+        LATC = 0x7f;
+    }
+    else if (val > 800){
+        LATC = 0x3f;
+    }
+    else if (val > 700){
+        LATC = 0x1f;
+    }
+    else if (val > 600){
+        LATC = 0x0f;
+    }
+    else if (val > 500){
+        LATC = 0x07;
+    }
+    else if (val > 400){
+        LATC = 0x03;
+    }
+    else if (val > 300){
+        LATC = 0x01;
+    }
+    else{
+        LATC = 0x01;
+    }
+}
+
+void Digits(int val){
+    int max100 = val / 10;
+    int tens = max100 / 10;
+    int units = max100 % 10;
+        
+    for (int i = 0; i < 10; i++){
+        displayDigit(tens);
+        LATB = 0b01000000;
+        __delay_ms(1);
+        LATB = 0b110000;
+        displayDigit(units);
+        LATB = 0b10000000;
+        __delay_ms(1);
+        LATB = 0b11000000;
+    }
+}
+
+void displayDigit(int digit){
+    switch(digit){
+        case 0:
+            LATD = 0b11111100;
+            break;
+        case 1:
+            LATD = 0b01100000;
+            break;
+        case 2:
+            LATD = 0b1101010;
+            break;
+        case 3:
+            LATD = 0b11110010;
+            break;
+        case 4:
+            LATD = 0b0110110;
+            break;
+        case 5:
+            LATD = 0b10110110;
+            break;
+        case 6:
+            LATD = 0b10111110;
+            break;
+        case 7:
+            LATD = 0b11100000;
+            break;
+        case 8:
+            LATD = 0b11111110;
+            break;
+        case 9:
+            LATD = 0b11110110;
+            break;
     }
 }

@@ -7,15 +7,11 @@
 # 1 "C:/Program Files/Microchip/MPLABX/v6.00/packs/Microchip/PIC18F-K_DFP/1.5.114/xc8\\pic\\include\\language_support.h" 1 3
 # 2 "<built-in>" 2
 # 1 "main.c" 2
+# 10 "main.c"
+#pragma config FEXTOSC = HS
+#pragma config RSTOSC = HFINTOSC_1MHZ
 
 
-
-
-
-
-
-#pragma config FEXTOSC = ECH
-#pragma config RSTOSC = HFINTOSC_64MHZ
 
 
 #pragma config CLKOUTEN = OFF
@@ -23,10 +19,14 @@
 #pragma config FCMEN = ON
 
 
+
+
 #pragma config MCLRE = EXTMCLR
 #pragma config PWRTE = OFF
 #pragma config LPBOREN = OFF
 #pragma config BOREN = SBORDIS
+
+
 
 
 #pragma config BORV = VBOR_2P45
@@ -37,18 +37,26 @@
 #pragma config XINST = OFF
 
 
+
+
 #pragma config WDTCPS = WDTCPS_31
 #pragma config WDTE = OFF
+
+
 
 
 #pragma config WDTCWS = WDTCWS_7
 #pragma config WDTCCS = SC
 
 
+
+
 #pragma config WRT0 = OFF
 #pragma config WRT1 = OFF
 #pragma config WRT2 = OFF
 #pragma config WRT3 = OFF
+
+
 
 
 #pragma config WRTC = OFF
@@ -58,8 +66,14 @@
 #pragma config LVP = ON
 
 
+
+
 #pragma config CP = OFF
 #pragma config CPD = OFF
+
+
+
+
 
 
 
@@ -70,12 +84,10 @@
 #pragma config EBTR3 = OFF
 
 
+
+
 #pragma config EBTRB = OFF
-
-
-
-
-
+# 97 "main.c"
 # 1 "C:/Program Files/Microchip/MPLABX/v6.00/packs/Microchip/PIC18F-K_DFP/1.5.114/xc8\\pic\\include\\xc.h" 1 3
 # 18 "C:/Program Files/Microchip/MPLABX/v6.00/packs/Microchip/PIC18F-K_DFP/1.5.114/xc8\\pic\\include\\xc.h" 3
 extern const char __xc8_OPTIM_SPEED;
@@ -16981,24 +16993,58 @@ __attribute__((__unsupported__("The READTIMER" "0" "() macro is not available wi
 unsigned char __t1rd16on(void);
 unsigned char __t3rd16on(void);
 # 34 "C:/Program Files/Microchip/MPLABX/v6.00/packs/Microchip/PIC18F-K_DFP/1.5.114/xc8\\pic\\include\\xc.h" 2 3
-# 69 "main.c" 2
+# 97 "main.c" 2
 
 
 
 
-void main(){
-    TRISD = 0;
+
+
+
+
+void main(void){
     TRISC = 0;
+    TRISD = 0;
+    LATD = 0;
+    TRISA = 0b00000001;
+    ANSELA = 0b00000001;
+    ADCON0 |= 0x40;
+    ADCON0 |= 0x04;
+    ADCON0 |= 0x80;
+    ADCON0 |= 0x01;
+    uint16_t result = 0;
     while(1){
-        LATD = 0x55;
-        LATC = 0xAA;
 
-        _delay((unsigned long)((50)*(64000000/4000.0)));
+        result |= (ADRESH << 8);
+        result |= ADRESL;
 
-        LATD = 0xAA;
-        LATC = 0x55;
-
-        _delay((unsigned long)((50)*(64000000/4000.0)));
-
+        if (result > 1000){
+            LATC = 0x80;
+        }
+        else if (result > 900){
+            LATC = 0x40;
+        }
+        else if (result > 800){
+            LATC = 0x20;
+        }
+        else if (result > 700){
+            LATC = 0x10;
+        }
+        else if (result > 600){
+            LATC = 0x08;
+        }
+        else if (result > 500){
+            LATC = 0x04;
+        }
+        else if (result > 400){
+            LATC = 0x02;
+        }
+        else if (result > 300){
+            LATC = 0x01;
+        }
+        else{
+            LATC = 0x01;
+        }
+        result = 0;
     }
 }
