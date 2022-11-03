@@ -102,170 +102,46 @@
 
 #include <pic18f45k40.h>
 #include <stdint.h>
-#define _XTAL_FREQ 6000000
+#define _XTAL_FREQ 4000000
 
-void displayDigit(int digit);
-void Digits(int val);
-void Bar(int val);
-void Top(int val);
-int state = 1;
-
-__interrupt(high_priority) void isr (void){
-    
-    if (PIR0 & 0x01){
-        
-        state += 1;
-        if (state > 2){
-            state = 0;
-        }
-        PIR0 &= ~0x01;
-        INTCON |= 0b11000000;
-    }
-}
+int counter = 0;
+int threshold = 255;
 
 void main(void){
-    TRISB = 0b00001111;
-    ANSELB = 0;
-    TRISC = 0;
-    TRISA = 0b00000001;
-    TRISD = 0x00;
-    ANSELA = 0b00000001;
-    LATD = 0x00;
+    TRISD = 0b00000000;
+    LATD = 0x00; //reset
+    LATD = 0x01; //enable 1,2
+    
+    TRISA = 0b00000100;
+    ANSELA = 0b00000100;
+    
+    TRISA = 0b00000100;
+    ANSELA = 0b00000100;
+    ADPCH = 2;
+    FVRCON = 0x80;
+    while(!FVRCON & 0x40);
+    FVRCON |= 0x01;
+    ADREF |= 0x03;
     ADCON0 |= 0x40;
     ADCON0 |= 0x04;
     ADCON0 |= 0x80;
     ADCON0 |= 0x01;
-    INTCON |= 0b11000000;
-        
-    uint16_t result = 0;
-    while(1){
-        //__delay_ms(50);
     
-    
-        result = (ADRESH << 8);
-        result |= ADRESL;
-        if (state == 0){
-            Top(result);
-    PIE0 = 0b00000001; // enable int 0 interrupt
-    INTCON = 0b01000000;
-        } else if (state == 1){
-            Digits(result);
-        } else if (state == 2){
-            Bar(result);
-        }
-        result = 0;
-    }
-}
-
-void Top(int val){
-    if (val > 1000){
-        LATC = 0x80;
-    }
-    else if (val > 900){
-        LATC = 0x40;
-    }
-    else if (val > 800){
-        LATC = 0x20;
-    }
-    else if (val > 700){
-        LATC = 0x10;
-    }
-    else if (val > 600){
-        LATC = 0x08;
-    }
-    else if (val > 500){
-        LATC = 0x04;
-    }
-    else if (val > 400){
-        LATC = 0x02;
-    }
-    else if (val > 300){
-        LATC = 0x01;
-    }
-    else{
-        LATC = 0x01;
-    }
-}
-
-void Bar(int val){
-    if (val > 1000){
-        LATC = 0xff;
-    }
-    else if (val > 900){
-        LATC = 0x7f;
-    }
-    else if (val > 800){
-        LATC = 0x3f;
-    }
-    else if (val > 700){
-        LATC = 0x1f;
-    }
-    else if (val > 600){
-        LATC = 0x0f;
-    }
-    else if (val > 500){
-        LATC = 0x07;
-    }
-    else if (val > 400){
-        LATC = 0x03;
-    }
-    else if (val > 300){
-        LATC = 0x01;
-    }
-    else{
-        LATC = 0x01;
-    }
-}
-
-void Digits(int val){
-    int max100 = val / 10;
-    int tens = max100 / 10;
-    int units = max100 % 10;
-        
-    for (int i = 0; i < 10; i++){
-        displayDigit(tens);
-        LATB = 0b10000000;
-        __delay_ms(1);
-        LATB = 0b11000000;
-        displayDigit(units);
-        LATB = 0b01000000;
-        __delay_ms(1);
-        LATB = 0b11000000;
-        __delay_ms(1);
-    }
-}
-
-void displayDigit(int digit){
-    switch(digit){
-        case 0:
-            LATD = 0b11111100;
-            break;
-        case 1:
-            LATD = 0b01100000;
-            break;
-        case 2:
-            LATD = 0b11011010;
-            break;
-        case 3:
-            LATD = 0b11110010;
-            break;
-        case 4:
-            LATD = 0b01100110;
-            break;
-        case 5:
-            LATD = 0b10110110;
-            break;
-        case 6:
-            LATD = 0b10111110;
-            break;
-        case 7:
-            LATD = 0b11100000;
-            break;
-        case 8:
-            LATD = 0b11111110;
-            break;
-        case 9:
-            LATD = 0b11110110;
-            break;
+    int result = 0;
+   while(1){
+       result = (ADRESH << 8);
+       result |= ADRESL;
+       counter++;
+       if (counter > result){
+           //motor off
+           LATD = 0x01;
+       } else {
+           //motor forwards
+           LATD = 0x05;
+       }
+       if (counter > 1024) {
+           counter = 0;
+       }
+       __delay_us(10);
     }
 }
