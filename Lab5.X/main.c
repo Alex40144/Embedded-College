@@ -111,6 +111,10 @@ void main(void){
     TRISA = 0b00000010;
     ANSELA = 0b00000010;
     ADPCH = 1;
+    FVRCON = 0x80;
+    while(!FVRCON & 0x40);
+    FVRCON |= 0x01;
+    ADREF |= 0x03;
     ADCON0 |= 0x40;
     ADCON0 |= 0x04;
     ADCON0 |= 0x80;
@@ -120,7 +124,7 @@ void main(void){
         //__delay_ms(50);
         result |= (ADRESH << 8);
         result |= ADRESL;
-        int mv = result * (3300 / 1024);
+        int mv = result;
         int temp = mv / 10;
         int tens = temp / 10;
         int units = temp % 10;
