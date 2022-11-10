@@ -111,31 +111,31 @@ void LCD_Char(char character);
 int counter = 0;
 int threshold = 255;
 
-void main(void){
+void main(void) {
     TRISD = 0b00000000;
     LATD = 0x00; //reset
     LATD = 0x01; //enable 1,2
-    
+
     TRISA = 0b00000100;
     ANSELA = 0b00000100;
-    
+
     TRISE = 0x00;
     LATE = 0x00;
-    
-    TRISA = 0b00000100;
-    ANSELA = 0b00000100;
-    ADPCH = 2;
+
+    TRISA = 0b00000010;
+    ANSELA = 0b00000010;
+    ADPCH = 1;
     FVRCON = 0x80;
-    while(!FVRCON & 0x40);
+    while (!FVRCON & 0x40);
     FVRCON |= 0x01;
     ADREF |= 0x03;
     ADCON0 |= 0x40;
     ADCON0 |= 0x04;
     ADCON0 |= 0x80;
     ADCON0 |= 0x01;
-    
+
     int result = 0;
-    
+
     LCD_Initialise();
     LCD_Char('T');
     LCD_Char('E');
@@ -148,29 +148,37 @@ void main(void){
     LCD_Char('M');
     LCD_Char(' ');
     LCD_Char(':');
-    
 
-   while(1){
-       result = (ADRESH << 8);
-       result |= ADRESL;
-       counter++;
-       if (counter > result){
-           //motor off
-           LATD = 0x01;
-       } else {
-           //motor forwards
-           LATD = 0x05;
-       }
-       if (counter > 1024) {
-           counter = 0;
-       }
-       __delay_us(10);
+
+    while (1) {
+        result = (ADRESH << 8);
+        result |= ADRESL;
+        int mv = result;
+        int temp = mv / 10;
+        char tens = (char)(temp / 10) + '0';
+        char units = (char)(temp % 10) + '0';
+        
+        LCD_Instruction(0x85);
+        LCD_Char(tens);
+        LCD_Char(units);
+        counter++;
+        if (temp < 24) {
+            //motor off
+            LATD = 0x01;
+        } else {
+            //motor forwards
+            LATD = 0x05;
+        }
+        if (counter > 1024) {
+            counter = 0;
+        }
+        __delay_us(10);
     }
 }
 
-void LCD_Instruction(int instruction){
+void LCD_Instruction(int instruction) {
     //send high half
-        //set data
+    //set data
     LATD &= ~0xF0;
     LATD |= (instruction & 0xF0);
     //register select low
@@ -178,7 +186,7 @@ void LCD_Instruction(int instruction){
     LATE |= 0x04; //enable high
     __delay_ms(5);
     LATE &= ~0x04; //enable high
-    
+
     LATD &= ~0xF0;
     LATD |= (instruction << 4);
     //register select low
@@ -188,7 +196,7 @@ void LCD_Instruction(int instruction){
     LATE &= ~0x04; //enable high
 }
 
-void LCD_Char(char character){
+void LCD_Char(char character) {
     LATD &= ~0xF0;
     LATD |= (character & 0xF0);
     //register select low
@@ -196,7 +204,7 @@ void LCD_Char(char character){
     LATE |= 0x04; //enable high
     __delay_ms(1);
     LATE &= ~0x04; //enable high
-    
+
     LATD &= ~0xF0;
     LATD |= (character << 4);
 
@@ -205,7 +213,7 @@ void LCD_Char(char character){
     LATE &= ~0x04; //enable high
 }
 
-void LCD_Initialise(){
+void LCD_Initialise() {
     LCD_Instruction(0x02); //set 4 bit address
     __delay_ms(10);
     LCD_Instruction(0x28); //set data length and number of lines
