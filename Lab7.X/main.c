@@ -104,6 +104,10 @@
 #include <stdint.h>
 #define _XTAL_FREQ 4000000
 
+void LCD_Initialise();
+void LCD_Instruction(int instruction);
+void LCD_Char(char character);
+
 int counter = 0;
 int threshold = 255;
 
@@ -114,6 +118,9 @@ void main(void){
     
     TRISA = 0b00000100;
     ANSELA = 0b00000100;
+    
+    TRISE = 0x00;
+    LATE = 0x00;
     
     TRISA = 0b00000100;
     ANSELA = 0b00000100;
@@ -128,6 +135,21 @@ void main(void){
     ADCON0 |= 0x01;
     
     int result = 0;
+    
+    LCD_Initialise();
+    LCD_Char('T');
+    LCD_Char('E');
+    LCD_Char('M');
+    LCD_Char('P');
+    LCD_Char(':');
+    LCD_Instruction(0xC0);
+    LCD_Char('R');
+    LCD_Char('P');
+    LCD_Char('M');
+    LCD_Char(' ');
+    LCD_Char(':');
+    
+
    while(1){
        result = (ADRESH << 8);
        result |= ADRESL;
@@ -144,4 +166,53 @@ void main(void){
        }
        __delay_us(10);
     }
+}
+
+void LCD_Instruction(int instruction){
+    //send high half
+        //set data
+    LATD &= ~0xF0;
+    LATD |= (instruction & 0xF0);
+    //register select low
+    LATE &= ~0x01;
+    LATE |= 0x04; //enable high
+    __delay_ms(5);
+    LATE &= ~0x04; //enable high
+    
+    LATD &= ~0xF0;
+    LATD |= (instruction << 4);
+    //register select low
+    LATE &= 0x01;
+    LATE |= 0x04; //enable high
+    __delay_ms(5);
+    LATE &= ~0x04; //enable high
+}
+
+void LCD_Char(char character){
+    LATD &= ~0xF0;
+    LATD |= (character & 0xF0);
+    //register select low
+    LATE |= 0x01;
+    LATE |= 0x04; //enable high
+    __delay_ms(1);
+    LATE &= ~0x04; //enable high
+    
+    LATD &= ~0xF0;
+    LATD |= (character << 4);
+
+    LATE |= 0x04; //enable high
+    __delay_ms(1);
+    LATE &= ~0x04; //enable high
+}
+
+void LCD_Initialise(){
+    LCD_Instruction(0x02); //set 4 bit address
+    __delay_ms(10);
+    LCD_Instruction(0x28); //set data length and number of lines
+    __delay_ms(10);
+    LCD_Instruction(0x0C); //display on, cursor off
+    __delay_ms(10);
+    LCD_Instruction(0x06); //set cursor increment
+    __delay_ms(10);
+    LCD_Instruction(0x01); //display clear
 }
