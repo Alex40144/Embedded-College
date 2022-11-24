@@ -148,6 +148,10 @@ void main(void) {
     LCD_Char('M');
     LCD_Char(' ');
     LCD_Char(':');
+    LCD_Char('?');
+    LCD_Char('?');
+    LCD_Char('?');
+
 
 
     while (1) {
