@@ -141,13 +141,13 @@ void main(void){
     while(1){
         //__delay_ms(50);
     
-    
+        PIE0 = 0b00000001; // enable int 0 interrupt
+        INTCON = 0b01000000;
         result = (ADRESH << 8);
         result |= ADRESL;
         if (state == 0){
             Top(result);
-    PIE0 = 0b00000001; // enable int 0 interrupt
-    INTCON = 0b01000000;
+
         } else if (state == 1){
             Digits(result);
         } else if (state == 2){

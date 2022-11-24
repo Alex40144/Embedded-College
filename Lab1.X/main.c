@@ -95,9 +95,6 @@
 
 
 #include <xc.h>
-
-
-
 #include <pic18f45k40.h>
 #include <stdint.h>
 #define _XTAL_FREQ 6000000
