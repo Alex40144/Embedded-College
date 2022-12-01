@@ -111,15 +111,12 @@ void main(void)
     LATD = 0x00; // reset
     LATD = 0x01; // enable 1,2
 
-    TRISA = 0b00000100;
-    ANSELA = 0b00000100;
-
     TRISE = 0x00;
     LATE = 0x00;
 
-    TRISA = 0b00000010;
-    ANSELA = 0b00000010;
-    ADPCH = 1;
+    TRISA = 0b00000100;
+    ANSELA = 0b00000100;
+    ADPCH = 2;
     FVRCON = 0x80;
     FVRCON |= 0x01;
     ADREF |= 0x03;
@@ -147,36 +144,28 @@ void main(void)
     {
         result = (ADRESH << 8);
         result |= ADRESL;
+        result = result >> 0;
         int mv = result;
         int temp = mv / 10;
-        char tens = (char)(temp / 10) + '0';
-        char units = (char)(temp % 10) + '0';
-
-        LCD_Instruction(0x85);
-        LCD_Char(tens);
-        LCD_Char(units);
-        LCD_Instruction(0xC5);
-        char str[8];
-        itoa((temp * 20), str, 10);
+        char str[] = {'0','0','0','0','0','0','0','0'};
+        itoa((temp), str, 10);
         LCD_string(str);
 
-        if (temp < 24)
-        {
-            // motor off
-            LATD = 0x01;
-        }
-        else
-        {
-            // motor forwards
-            LATD = 0x05;
-        }
-        for(counter = 0;;counter++){
-            if (counter > (temp * 20))
+        LCD_Instruction(0x85);
+        LCD_string(str);
+        LCD_Instruction(0xC5);
+        itoa((result), str, 10);
+        LCD_string(str);
+
+       
+        LATD = 0x05;
+        
+        for(counter = 0; counter < 2048;counter++){
+            if (counter > result)
             {
                 LATD = 0x01;
             }
-            __delay_us(10);
-
+            __delay_us(1);
         }
     }
 }
